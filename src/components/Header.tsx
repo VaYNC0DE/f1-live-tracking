@@ -152,7 +152,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Green pulsing "LIVE SYNC" badge */}
             <div
-              className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.15)] flex-shrink-0"
+              className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse flex-shrink-0"
               title={isLive ? 'Live OpenF1 Telemetry Connected' : 'Synchronized Playback Telemetry'}
             >
               <span className="relative flex h-2.5 w-2.5">
