@@ -140,10 +140,14 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
           </span>
         </div>
 
-        {/* Pit Status Indicator Badge */}
+        {/* Red Flashing 'IN PIT' Badge */}
         {driver.inPit && (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-black tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse">
-            PIT
+          <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-black tracking-wider uppercase bg-red-600 text-white border border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.7)] animate-pulse flex-shrink-0">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-90" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+            </span>
+            <span>IN PIT</span>
           </span>
         )}
       </div>
