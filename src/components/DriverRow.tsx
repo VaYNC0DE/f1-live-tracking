@@ -63,16 +63,28 @@ const COMPOUND_CONFIGS: Record<TyreCompound, CompoundConfig> = {
 
 export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
   const [imageError, setImageError] = React.useState(false);
+  const [lapUpdated, setLapUpdated] = React.useState(false);
+  const prevLapTimeRef = React.useRef(driver.lastLapTime);
+
+  React.useEffect(() => {
+    if (driver.isFastestLap && driver.lastLapTime !== prevLapTimeRef.current) {
+      prevLapTimeRef.current = driver.lastLapTime;
+      setLapUpdated(true);
+      const timer = setTimeout(() => setLapUpdated(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [driver.isFastestLap, driver.lastLapTime]);
+
   const tyreConfig = COMPOUND_CONFIGS[driver.tyreCompound] || COMPOUND_CONFIGS.UNKNOWN;
   const isP1 = driver.position === 1;
   const isPodium = driver.position <= 3;
   const isTopTen = driver.position <= 10;
 
   // Lap time coloring logic:
-  // Purple if fastest in session, green if personal best
+  // Neon Purple (#B138DD) if fastest in session, green if personal best
   let lapTimeClass = 'text-zinc-300 font-mono';
   if (driver.isFastestLap) {
-    lapTimeClass = 'text-purple-400 font-bold drop-shadow-[0_0_8px_rgba(192,132,252,0.45)]';
+    lapTimeClass = 'text-[#B138DD] font-bold drop-shadow-[0_0_10px_rgba(177,56,221,0.65)]';
   } else if (driver.isPersonalBest) {
     lapTimeClass = 'text-emerald-400 font-semibold drop-shadow-[0_0_6px_rgba(52,211,153,0.35)]';
   }
@@ -80,8 +92,13 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
   return (
     <div
       className={cn(
-        'group relative flex items-center justify-between px-3 py-2 border-b border-slate-800/80 transition-colors duration-150',
-        index % 2 === 0 ? 'bg-zinc-950/60' : 'bg-zinc-900/30',
+        'group relative flex items-center justify-between px-3 py-2 border-b border-slate-800/80 transition-all duration-300',
+        driver.isFastestLap
+          ? 'bg-[#B138DD]/10 border-l-4 border-l-[#B138DD] shadow-[inset_0_0_16px_rgba(177,56,221,0.18)] animate-pulse'
+          : index % 2 === 0
+          ? 'bg-zinc-950/60'
+          : 'bg-zinc-900/30',
+        lapUpdated && driver.isFastestLap && 'ring-1 ring-[#B138DD] shadow-[0_0_20px_rgba(177,56,221,0.4)]',
         'hover:bg-zinc-800/50'
       )}
     >
@@ -139,6 +156,17 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
             {driver.teamName}
           </span>
         </div>
+
+        {/* Sleek Neon Purple Stopwatch Badge for Fastest Lap Holder */}
+        {driver.isFastestLap && (
+          <span
+            title="Fastest Lap of the Session"
+            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#B138DD] bg-[#B138DD]/15 border border-[#B138DD]/50 shadow-[0_0_10px_rgba(177,56,221,0.4)] animate-pulse flex-shrink-0"
+          >
+            <Timer className="w-3.5 h-3.5 text-[#B138DD]" />
+            <span className="text-[9px] font-black uppercase tracking-wider hidden sm:inline">FL</span>
+          </span>
+        )}
 
         {/* Red Flashing 'IN PIT' Badge */}
         {driver.inPit && (
@@ -198,9 +226,9 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
         </div>
 
         {/* Last lap time with purple / green highlight */}
-        <div className="w-20 sm:w-28 flex items-center justify-end space-x-1">
+        <div className="w-20 sm:w-28 flex items-center justify-end space-x-1.5">
           {driver.isFastestLap && (
-            <Zap className="w-3 h-3 text-purple-400 fill-purple-400 hidden sm:inline" />
+            <Timer className="w-3.5 h-3.5 text-[#B138DD] animate-pulse flex-shrink-0" />
           )}
           <span className={cn('text-xs sm:text-sm tracking-tight', lapTimeClass)}>
             {formatLapTime(driver.lastLapTime)}
