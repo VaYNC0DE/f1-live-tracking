@@ -88,6 +88,44 @@ export interface Stint {
   tyre_age_at_start: number | null;
 }
 
+export interface PitStop {
+  session_key: number;
+  meeting_key: number;
+  driver_number: number;
+  date: string;
+  lap_number: number;
+  stop_duration: number | null;
+  lane_duration?: number | null;
+  pit_duration?: number | null;
+}
+
+export interface FastestPitStop {
+  sessionKey: number;
+  driverNumber: number;
+  nameAcronym: string;
+  driverFullName: string;
+  teamName: string;
+  teamColor: string;
+  headshotUrl?: string | null;
+  lapNumber: number;
+  duration: number;
+  isStationary: boolean;
+}
+
+export interface PitStopSummary {
+  sessionKey: number;
+  driverNumber: number;
+  nameAcronym: string;
+  driverFullName: string;
+  teamName: string;
+  teamColor: string;
+  headshotUrl?: string | null;
+  lapNumber: number;
+  duration: number;
+  isStationary: boolean;
+  date: string;
+}
+
 /**
  * Unified UI Model for the Timing Tower
  */
@@ -105,6 +143,9 @@ export interface DriverTimingRow {
   tyreCompound: TyreCompound;
   tyreAgeLaps: number;
   inPit: boolean;
+  pitStopCount: number;
+  isFastestPitStop: boolean;
+  bestPitStopDuration: number | null;
   headshotUrl?: string | null;
 }
 

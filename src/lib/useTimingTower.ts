@@ -3,8 +3,11 @@ import {
   ActiveRaceControlStatus,
   Driver,
   DriverTimingRow,
+  FastestPitStop,
   Interval,
   Lap,
+  PitStop,
+  PitStopSummary,
   RaceControlMessage,
   Session,
   Stint,
@@ -16,6 +19,7 @@ import {
   getIntervals,
   getLaps,
   getLatestSession,
+  getPitStops,
   getRaceControl,
   getSessionByKey,
   getSessionsByYear,
@@ -23,6 +27,7 @@ import {
   isSessionCurrentlyActive,
 } from './openf1Client';
 import { getTeamColor } from './teamColors';
+import { parsePitStops } from './pitStopUtils';
 
 export interface UseTimingTowerResult {
   drivers: DriverTimingRow[];
@@ -37,6 +42,8 @@ export interface UseTimingTowerResult {
   selectedSessionKey: number | null;
   setSelectedSessionKey: (key: number) => void;
   availableSessions: Session[];
+  fastestPitStop: FastestPitStop | null;
+  pitStops: PitStopSummary[];
 }
 
 const VALID_COMPOUNDS: Set<TyreCompound> = new Set([
@@ -152,7 +159,10 @@ export function buildTimingTowerRows(
   drivers: Driver[],
   intervals: Interval[],
   laps: Lap[],
-  stints: Stint[]
+  stints: Stint[],
+  driverPitCounts: Map<number, number> = new Map(),
+  driverBestPitDuration: Map<number, number> = new Map(),
+  fastestPitDriverNumber: number | null = null
 ): DriverTimingRow[] {
   // 1. Deduplicate drivers by driver_number
   const driverMap = new Map<number, Driver>();
@@ -343,6 +353,11 @@ export function buildTimingTowerRows(
             latestStint?.lap_end === latestLapEntry.lap_number))
     );
 
+    const pitStopCount = driverPitCounts.get(driver.driver_number) ?? 0;
+    const bestPitStopDuration = driverBestPitDuration.get(driver.driver_number) ?? null;
+    const isFastestPitStop =
+      fastestPitDriverNumber !== null && driver.driver_number === fastestPitDriverNumber;
+
     // Format gaps (with fallback to lap-time delta during Practice/Qualifying)
     let gapToLeader = formatGapToLeader(position, latestInterval?.gap_to_leader);
     let intervalToAhead = formatIntervalToAhead(position, latestInterval?.interval);
@@ -371,6 +386,9 @@ export function buildTimingTowerRows(
       tyreCompound,
       tyreAgeLaps,
       inPit,
+      pitStopCount,
+      isFastestPitStop,
+      bestPitStopDuration,
       headshotUrl: driver.headshot_url || null,
     };
   });
@@ -510,6 +528,8 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
     label: 'TRACK CLEAR',
     message: 'All sectors green',
   });
+  const [fastestPitStop, setFastestPitStop] = useState<FastestPitStop | null>(null);
+  const [pitStops, setPitStops] = useState<PitStopSummary[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedSessionKey, setSelectedSessionKey] = useState<number | null>(null);
   const [availableSessions, setAvailableSessions] = useState<Session[]>([]);
@@ -585,9 +605,18 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
 
       const rawRaceControl = await getRaceControl(sessionKey);
       if (!isMountedRef.current) return;
+      await delay(250);
+      if (!isMountedRef.current) return;
+
+      const rawPitStops = await getPitStops(sessionKey);
+      if (!isMountedRef.current) return;
 
       const currentRaceControl = parseActiveRaceControlStatus(rawRaceControl);
       setRaceControlStatus(currentRaceControl);
+
+      const parsedPit = parsePitStops(rawPitStops, rawDrivers);
+      setFastestPitStop(parsedPit.fastestPitStop);
+      setPitStops(parsedPit.sortedPitStops);
 
       // Upcoming / Empty Session State check:
       // If a chosen session returns empty arrays for laps or intervals (e.g. future or unstarted session),
@@ -599,6 +628,8 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
       if (isUpcomingSession) {
         setSessionInfo(currentSession);
         setDrivers([]);
+        setFastestPitStop(null);
+        setPitStops([]);
         setIsLive(liveStatus);
         setRaceControlStatus({
           type: 'GREEN',
@@ -613,7 +644,10 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
         rawDrivers,
         rawIntervals,
         rawLaps,
-        rawStints
+        rawStints,
+        parsedPit.driverPitCounts,
+        parsedPit.driverBestPitDuration,
+        parsedPit.fastestDriverNumber
       );
 
       setSessionInfo(currentSession);
@@ -666,5 +700,7 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
     selectedSessionKey,
     setSelectedSessionKey,
     availableSessions,
+    fastestPitStop,
+    pitStops,
   };
 }

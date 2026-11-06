@@ -5,8 +5,9 @@ import { useTimingTower } from '../lib/useTimingTower';
 import { Header } from '../components/Header';
 import { TimingTower } from '../components/TimingTower';
 import { CircuitCard } from '../components/CircuitCard';
+import { PitStopCard } from '../components/PitStopCard';
 import { formatLapTime } from '../lib/utils';
-import { Zap, Award, Activity, RotateCcw, Timer } from 'lucide-react';
+import { Zap, Award, Activity, RotateCcw, Timer, Wrench } from 'lucide-react';
 
 export default function Home() {
   const {
@@ -22,6 +23,8 @@ export default function Home() {
     selectedSessionKey,
     setSelectedSessionKey,
     availableSessions,
+    fastestPitStop,
+    pitStops,
   } = useTimingTower(5000);
 
   // Find overall fastest lap driver
@@ -51,8 +54,41 @@ export default function Home() {
 
       {/* Main Broadcast Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 flex flex-col gap-4">
-        {/* Sub-Header Broadcast Bar: Fastest Lap & Telemetry Feed Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {/* Sub-Header Broadcast Bar: Fastest Lap, Race Leader, Fastest Pit Stop & Telemetry Feed */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Race Leader Card */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-8 h-8 rounded-md bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
+                <Award className="w-4 h-4 text-amber-400" />
+              </div>
+              <div>
+                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">
+                  RACE LEADER
+                </div>
+                <div className="text-xs sm:text-sm font-black font-mono text-zinc-100">
+                  {drivers[0] ? (
+                    <>
+                      <span className="mr-1.5">{drivers[0].nameAcronym}</span>
+                      <span className="text-xs text-zinc-400 font-sans font-normal truncate max-w-[100px] inline-block align-bottom">
+                        ({drivers[0].teamName})
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-zinc-500">P1 INITIALIZING</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            {drivers[0] && (
+              <div
+                className="w-2 h-7 rounded-sm shadow-sm flex-shrink-0"
+                style={{ backgroundColor: drivers[0].teamColor }}
+                title={drivers[0].teamName}
+              />
+            )}
+          </div>
+
           {/* Fastest Lap Card */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
             <div className="flex items-center space-x-2.5">
@@ -79,48 +115,58 @@ export default function Home() {
             </div>
             {fastestLapDriver && (
               <div
-                className="w-2 h-7 rounded-sm shadow-sm"
+                className="w-2 h-7 rounded-sm shadow-sm flex-shrink-0"
                 style={{ backgroundColor: fastestLapDriver.teamColor }}
                 title={fastestLapDriver.teamName}
               />
             )}
           </div>
 
-          {/* Leader Status Card */}
+          {/* Fastest Pit Stop Card */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
             <div className="flex items-center space-x-2.5">
               <div className="w-8 h-8 rounded-md bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-                <Award className="w-4 h-4 text-amber-400" />
+                <Wrench className="w-4 h-4 text-amber-400" />
               </div>
               <div>
-                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">
-                  RACE LEADER
+                <div className="flex items-center space-x-1.5">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">
+                    FASTEST PIT STOP
+                  </span>
+                  {fastestPitStop && (
+                    <span className="text-[9px] font-mono font-bold px-1 rounded bg-zinc-800 text-zinc-400 border border-slate-800">
+                      {fastestPitStop.isStationary ? 'BOX' : 'LANE'}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs sm:text-sm font-black font-mono text-zinc-100">
-                  {drivers[0] ? (
+                  {fastestPitStop ? (
                     <>
-                      <span className="mr-1.5">{drivers[0].nameAcronym}</span>
-                      <span className="text-xs text-zinc-400 font-sans font-normal">
-                        ({drivers[0].teamName})
+                      <span className="text-zinc-200 mr-1.5">{fastestPitStop.nameAcronym}</span>
+                      <span className="text-amber-400 font-bold">
+                        {fastestPitStop.duration.toFixed(2)}s
+                      </span>
+                      <span className="text-[11px] font-normal text-zinc-500 ml-1.5">
+                        (L{fastestPitStop.lapNumber})
                       </span>
                     </>
                   ) : (
-                    <span className="text-zinc-500">P1 INITIALIZING</span>
+                    <span className="text-zinc-500">NO STOPS RECORDED</span>
                   )}
                 </div>
               </div>
             </div>
-            {drivers[0] && (
+            {fastestPitStop && (
               <div
-                className="w-2 h-7 rounded-sm shadow-sm"
-                style={{ backgroundColor: drivers[0].teamColor }}
-                title={drivers[0].teamName}
+                className="w-2 h-7 rounded-sm shadow-sm flex-shrink-0"
+                style={{ backgroundColor: fastestPitStop.teamColor }}
+                title={`${fastestPitStop.teamName} (Driver #${fastestPitStop.driverNumber})`}
               />
             )}
           </div>
 
           {/* Telemetry Stream Status */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
             <div className="flex items-center space-x-2.5">
               <div className="w-8 h-8 rounded-md bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
                 <Activity className="w-4 h-4 text-emerald-400" />
@@ -130,11 +176,11 @@ export default function Home() {
                   TELEMETRY ENGINE
                 </div>
                 <div className="text-xs sm:text-sm font-semibold text-zinc-200">
-                  {isLive ? 'Live Circuit Trackside Stream' : 'Historical Session Playback'}
+                  {isLive ? 'Live Circuit Trackside' : 'Historical Session Playback'}
                 </div>
               </div>
             </div>
-            <div className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-2 py-1 rounded border border-slate-800">
+            <div className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-2 py-1 rounded border border-slate-800 flex-shrink-0">
               5s POLLING
             </div>
           </div>
@@ -158,12 +204,17 @@ export default function Home() {
             />
           </div>
 
-          {/* Circuit Map & Live Race Control Status (5 cols on lg, 4 on xl) */}
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4 lg:sticky lg:top-20">
+          {/* Circuit Map & Live Race Control Status + Pit Stop Card (5 cols on lg, 4 on xl) */}
+          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4">
             <CircuitCard
               sessionInfo={sessionInfo}
               raceControlStatus={raceControlStatus}
               totalLaps={totalLaps}
+            />
+            <PitStopCard
+              fastestPitStop={fastestPitStop}
+              pitStops={pitStops}
+              isLoading={isLoading}
             />
           </div>
         </div>
@@ -207,8 +258,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Lap Time Legend */}
-          <div className="flex items-center space-x-4">
+          {/* Lap Time & Pit Stop Legend */}
+          <div className="flex items-center flex-wrap gap-4">
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#B138DD] shadow-[0_0_8px_rgba(177,56,221,0.7)]" />
               <span className="text-[#B138DD] font-mono text-[11px] font-semibold">
@@ -219,6 +270,12 @@ export default function Home() {
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
               <span className="text-emerald-300 font-mono text-[11px] font-medium">
                 Personal Best
+              </span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]" />
+              <span className="text-amber-300 font-mono text-[11px] font-semibold">
+                Fastest Pit Stop
               </span>
             </div>
           </div>

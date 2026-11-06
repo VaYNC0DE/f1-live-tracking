@@ -1,4 +1,4 @@
-import { Driver, Interval, Lap, RaceControlMessage, Session, Stint } from './types';
+import { Driver, Interval, Lap, PitStop, RaceControlMessage, Session, Stint } from './types';
 
 const BASE_URL = 'https://api.openf1.org/v1';
 
@@ -256,6 +256,17 @@ export async function getStints(sessionKey: number): Promise<Stint[]> {
 export async function getRaceControl(sessionKey: number): Promise<RaceControlMessage[]> {
   return fetchWithCacheAndDebounce<RaceControlMessage[]>(
     '/race_control',
+    { session_key: sessionKey },
+    DEFAULT_CACHE_TTL_MS
+  );
+}
+
+/**
+ * Fetches pit stop records for a given session.
+ */
+export async function getPitStops(sessionKey: number): Promise<PitStop[]> {
+  return fetchWithCacheAndDebounce<PitStop[]>(
+    '/pit',
     { session_key: sessionKey },
     DEFAULT_CACHE_TTL_MS
   );

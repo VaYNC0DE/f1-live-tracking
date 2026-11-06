@@ -1,7 +1,7 @@
 import React from 'react';
 import { DriverTimingRow, TyreCompound } from '../lib/types';
 import { cn, formatLapTime } from '../lib/utils';
-import { Timer, Zap } from 'lucide-react';
+import { Timer, Zap, Wrench } from 'lucide-react';
 
 interface DriverRowProps {
   driver: DriverTimingRow;
@@ -168,6 +168,19 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
           </span>
         )}
 
+        {/* Fastest Pit Stop Badge */}
+        {driver.isFastestPitStop && (
+          <span
+            title={`Session Fastest Pit Stop: ${driver.bestPitStopDuration?.toFixed(2)}s`}
+            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)] flex-shrink-0"
+          >
+            <Wrench className="w-3 h-3 text-amber-400" />
+            <span className="text-[9px] font-black uppercase tracking-wider hidden sm:inline">
+              {driver.bestPitStopDuration ? `${driver.bestPitStopDuration.toFixed(1)}s` : 'PIT'}
+            </span>
+          </span>
+        )}
+
         {/* Red Flashing 'IN PIT' Badge */}
         {driver.inPit && (
           <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-black tracking-wider uppercase bg-red-600 text-white border border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.7)] animate-pulse flex-shrink-0">
@@ -180,8 +193,8 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
         )}
       </div>
 
-      {/* Center-Right: Tyre Compound + Lap Age */}
-      <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 mr-2 sm:mr-4">
+      {/* Center-Right: Tyre Compound + Lap Age + Pit Stop Count */}
+      <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0 mr-2 sm:mr-4">
         {/* Tyre compound pill */}
         <div
           className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 py-0.5 rounded-full bg-zinc-900 border border-slate-800/80 shadow-sm"
@@ -201,6 +214,25 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
             {driver.tyreAgeLaps}L
           </span>
         </div>
+
+        {/* Pit Stop Count badge */}
+        {driver.pitStopCount > 0 && (
+          <span
+            className={cn(
+              'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border transition-colors flex-shrink-0',
+              driver.isFastestPitStop
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-[0_0_8px_rgba(245,158,11,0.25)]'
+                : 'bg-zinc-900 text-zinc-400 border-slate-800'
+            )}
+            title={
+              driver.isFastestPitStop
+                ? `Fastest Pit Stop: ${driver.bestPitStopDuration?.toFixed(2)}s (${driver.pitStopCount} stop${driver.pitStopCount > 1 ? 's' : ''})`
+                : `${driver.pitStopCount} pit stop${driver.pitStopCount > 1 ? 's' : ''}`
+            }
+          >
+            {driver.pitStopCount}P
+          </span>
+        )}
       </div>
 
       {/* Right section: Interval, Gap to leader, and Last Lap Time */}
