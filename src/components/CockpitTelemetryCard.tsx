@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { DriverCockpitTelemetry, DriverTimingRow } from '../lib/types';
+import { cn } from '../lib/utils';
 import { Gauge, Zap, Activity, AlertCircle, ChevronRight } from 'lucide-react';
 
 interface CockpitTelemetryCardProps {
@@ -248,7 +249,7 @@ export const CockpitTelemetryCard: React.FC<CockpitTelemetryCardProps> = ({
         <div>
           <div className="text-[10px] font-mono uppercase text-zinc-500 mb-1.5 flex items-center justify-between">
             <span>Switch Driver Cockpit:</span>
-            <span className="text-[9px] text-zinc-600">Click any car to tune in</span>
+            <span className="text-[9px] text-zinc-500">Click any car to tune in</span>
           </div>
 
           <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
@@ -259,17 +260,29 @@ export const CockpitTelemetryCard: React.FC<CockpitTelemetryCardProps> = ({
                   key={d.driverNumber}
                   type="button"
                   onClick={() => onSelectDriver(d.driverNumber)}
-                  className={`px-2 py-1 rounded text-[11px] font-mono font-bold border transition-all ${
+                  className={cn(
+                    'px-2 py-1 rounded text-[11px] font-mono font-bold border transition-all cursor-pointer inline-flex items-center space-x-1.5',
                     isSelected
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
-                      : 'bg-zinc-900 text-zinc-400 border-slate-800 hover:bg-zinc-800 hover:text-zinc-200'
-                  }`}
+                      ? 'border-cyan-400 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.35)]'
+                      : 'bg-zinc-900/90 text-zinc-400 border-slate-800 hover:bg-zinc-800 hover:text-zinc-200'
+                  )}
+                  style={
+                    isSelected
+                      ? {
+                          backgroundColor: `${d.teamColor}33`,
+                          borderColor: d.teamColor,
+                        }
+                      : undefined
+                  }
                 >
                   <span
-                    className="inline-block w-1.5 h-2.5 rounded-sm mr-1.5 align-middle"
+                    className="inline-block w-1.5 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: d.teamColor }}
                   />
-                  {d.nameAcronym}
+                  <span>{d.nameAcronym}</span>
+                  {isSelected && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping ml-0.5" />
+                  )}
                 </button>
               );
             })}

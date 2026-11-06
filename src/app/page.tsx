@@ -4,7 +4,6 @@ import React from 'react';
 import { useTimingTower } from '../lib/useTimingTower';
 import { Header } from '../components/Header';
 import { TimingTower } from '../components/TimingTower';
-import { CircuitCard } from '../components/CircuitCard';
 import { PitStopCard } from '../components/PitStopCard';
 import { CockpitTelemetryCard } from '../components/CockpitTelemetryCard';
 import { TrackStatusBar } from '../components/TrackStatusBar';
@@ -218,13 +217,8 @@ export default function Home() {
             />
           </div>
 
-          {/* Circuit Map, Cockpit & DRS Telemetry, and Pit Stop Card (5 cols on lg, 4 on xl) */}
+          {/* Cockpit & DRS Telemetry + Pit Stops & Strategy (5 cols on lg, 4 on xl) */}
           <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4">
-            <CircuitCard
-              sessionInfo={sessionInfo}
-              raceControlStatus={raceControlStatus}
-              totalLaps={totalLaps}
-            />
             <CockpitTelemetryCard
               telemetry={cockpitTelemetry}
               drivers={drivers}

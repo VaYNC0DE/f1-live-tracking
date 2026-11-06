@@ -94,9 +94,33 @@ export const TrackStatusBar: React.FC<TrackStatusBarProps> = ({
         </div>
       )}
 
+      {/* Red Flag / Session Suspended Active Alert Banner */}
+      {raceControlStatus.type === 'RED' && (
+        <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-red-600/20 border border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)] animate-pulse text-red-200">
+          <div className="flex items-center space-x-2.5">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-90" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+            </span>
+            <Flag className="w-5 h-5 text-red-400 fill-red-400" />
+            <div>
+              <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-wider text-red-300">
+                RED FLAG — {raceControlStatus.label}
+              </span>
+              <span className="hidden sm:inline font-mono text-xs text-red-400/80 ml-2">
+                • All Cars Return to Pit Lane • Session Clock Stopped
+              </span>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded bg-red-600 text-white border border-red-400 shadow-sm">
+            RED FLAG
+          </span>
+        </div>
+      )}
+
       {/* 2. Comprehensive Track State & Environmental Telemetry Strip */}
       <div className="px-3.5 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
-        {/* Left Side: Safety Car Status, Track Condition, DRS System State */}
+        {/* Left Side: Safety Car Status, Race Control Flag (e.g. Session Suspended), Track Condition, DRS System State */}
         <div className="flex items-center flex-wrap gap-2 sm:gap-3">
           {/* Safety Car Status Badge */}
           <div
@@ -122,6 +146,30 @@ export const TrackStatusBar: React.FC<TrackStatusBarProps> = ({
                 <span>SAFETY CAR: OFF</span>
               </>
             )}
+          </div>
+
+          {/* Official Flag / Race Control Status Badge (Moved next to Safety Car) */}
+          <div
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md border font-mono text-[11px] font-black ${
+              raceControlStatus.type === 'RED'
+                ? 'bg-red-500/20 border-red-500 text-red-300 shadow-[0_0_12px_rgba(239,68,68,0.4)] animate-pulse'
+                : raceControlStatus.type === 'YELLOW'
+                ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.25)]'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            }`}
+          >
+            <span
+              className={`w-2 h-2 rounded-full ${
+                raceControlStatus.type === 'RED'
+                  ? 'bg-red-500 animate-ping'
+                  : raceControlStatus.type === 'YELLOW'
+                  ? 'bg-amber-400 animate-pulse'
+                  : 'bg-emerald-400'
+              }`}
+            />
+            <span className="uppercase tracking-wider">
+              {raceControlStatus.label}
+            </span>
           </div>
 
           {/* Track Surface Condition: DRY vs WET */}

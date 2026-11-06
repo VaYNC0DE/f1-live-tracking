@@ -814,7 +814,16 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
           );
 
           if (telemetryPoints && telemetryPoints.length > 0) {
-            const latest = telemetryPoints[telemetryPoints.length - 1];
+            // In historical completed sessions, if the very last record is parked in parc fermé (speed === 0),
+            // search backward for the latest active flying point so real speed, gear, RPM, and throttle are visible
+            let latest = telemetryPoints[telemetryPoints.length - 1];
+            if (!liveStatus && latest.speed === 0) {
+              const activePoint = [...telemetryPoints].reverse().find((p) => p.speed > 50);
+              if (activePoint) {
+                latest = activePoint;
+              }
+            }
+
             const driverRow =
               normalizedRows.find((d) => d.driverNumber === targetDriverNum) || normalizedRows[0];
             if (driverRow) {
@@ -830,9 +839,9 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
                 rpm: latest.rpm,
                 throttle: latest.throttle,
                 brake: latest.brake,
-                isDrsOpen: latest.drs >= 10,
+                isDrsOpen: latest.drs !== null && latest.drs >= 10,
                 isDrsArmed: latest.drs === 8,
-                drsRawValue: latest.drs,
+                drsRawValue: latest.drs ?? 0,
                 timestamp: latest.date,
               });
             }

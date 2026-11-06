@@ -260,7 +260,7 @@ export async function getStints(sessionKey: number): Promise<Stint[]> {
   return fetchWithCacheAndDebounce<Stint[]>(
     '/stints',
     { session_key: sessionKey },
-    DEFAULT_CACHE_TTL_MS
+    15_000
   );
 }
 
@@ -282,7 +282,7 @@ export async function getPitStops(sessionKey: number): Promise<PitStop[]> {
   return fetchWithCacheAndDebounce<PitStop[]>(
     '/pit',
     { session_key: sessionKey },
-    DEFAULT_CACHE_TTL_MS
+    15_000
   );
 }
 
@@ -293,7 +293,7 @@ export async function getTrackWeather(sessionKey: number): Promise<TrackWeather[
   return fetchWithCacheAndDebounce<TrackWeather[]>(
     '/weather',
     { session_key: sessionKey },
-    DEFAULT_CACHE_TTL_MS
+    30_000
   );
 }
 
