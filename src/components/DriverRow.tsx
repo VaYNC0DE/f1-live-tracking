@@ -1,7 +1,9 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { DriverTimingRow, TyreCompound } from '../lib/types';
-import { cn, formatLapTime } from '../lib/utils';
-import { Timer, Zap, Wrench } from 'lucide-react';
+import { formatLapTime, cn } from '../lib/utils';
+import { Timer, Wrench } from 'lucide-react';
 
 interface DriverRowProps {
   driver: DriverTimingRow;
@@ -11,55 +13,48 @@ interface DriverRowProps {
 }
 
 interface CompoundConfig {
-  letter: string;
   badgeBg: string;
   badgeText: string;
+  letter: string;
   borderClass: string;
-  ringClass: string;
 }
 
 const COMPOUND_CONFIGS: Record<TyreCompound, CompoundConfig> = {
   SOFT: {
-    letter: 'S',
     badgeBg: 'bg-red-500/20',
-    badgeText: 'text-red-400',
+    badgeText: 'text-red-500 dark:text-red-400',
+    letter: 'S',
     borderClass: 'border-red-500',
-    ringClass: 'ring-red-500/30',
   },
   MEDIUM: {
-    letter: 'M',
     badgeBg: 'bg-yellow-500/20',
-    badgeText: 'text-yellow-400',
-    borderClass: 'border-yellow-400',
-    ringClass: 'ring-yellow-400/30',
+    badgeText: 'text-yellow-600 dark:text-yellow-400',
+    letter: 'M',
+    borderClass: 'border-yellow-500 dark:border-yellow-400',
   },
   HARD: {
+    badgeBg: 'bg-slate-200 dark:bg-zinc-200/20',
+    badgeText: 'text-slate-800 dark:text-zinc-100',
     letter: 'H',
-    badgeBg: 'bg-zinc-100/20',
-    badgeText: 'text-zinc-100',
-    borderClass: 'border-zinc-200',
-    ringClass: 'ring-zinc-300/30',
+    borderClass: 'border-slate-400 dark:border-zinc-200',
   },
   INTERMEDIATE: {
-    letter: 'I',
     badgeBg: 'bg-emerald-500/20',
-    badgeText: 'text-emerald-400',
+    badgeText: 'text-emerald-600 dark:text-emerald-400',
+    letter: 'I',
     borderClass: 'border-emerald-500',
-    ringClass: 'ring-emerald-500/30',
   },
   WET: {
-    letter: 'W',
     badgeBg: 'bg-blue-500/20',
-    badgeText: 'text-blue-400',
+    badgeText: 'text-blue-600 dark:text-blue-400',
+    letter: 'W',
     borderClass: 'border-blue-500',
-    ringClass: 'ring-blue-500/30',
   },
   UNKNOWN: {
-    letter: '?',
-    badgeBg: 'bg-zinc-800',
+    badgeBg: 'bg-zinc-500/20',
     badgeText: 'text-zinc-400',
-    borderClass: 'border-zinc-700',
-    ringClass: 'ring-zinc-600/30',
+    letter: '?',
+    borderClass: 'border-zinc-500',
   },
 };
 
@@ -69,13 +64,12 @@ export const DriverRow: React.FC<DriverRowProps> = ({
   isSelectedForCockpit = false,
   onSelectCockpit,
 }) => {
-  const [imageError, setImageError] = React.useState(false);
-  const [lapUpdated, setLapUpdated] = React.useState(false);
-  const prevLapTimeRef = React.useRef(driver.lastLapTime);
+  const [imageError, setImageError] = useState(false);
+  const [lapUpdated, setLapUpdated] = useState(false);
 
-  React.useEffect(() => {
-    if (driver.isFastestLap && driver.lastLapTime !== prevLapTimeRef.current) {
-      prevLapTimeRef.current = driver.lastLapTime;
+  // Flash highlight effect when fastest lap or personal best occurs
+  useEffect(() => {
+    if (driver.isFastestLap || driver.isPersonalBest) {
       setLapUpdated(true);
       const timer = setTimeout(() => setLapUpdated(false), 2500);
       return () => clearTimeout(timer);
@@ -89,26 +83,26 @@ export const DriverRow: React.FC<DriverRowProps> = ({
 
   // Lap time coloring logic:
   // Neon Purple (#B138DD) if fastest in session, green if personal best
-  let lapTimeClass = 'text-zinc-300 font-mono';
+  let lapTimeClass = 'text-slate-700 dark:text-zinc-300 font-mono';
   if (driver.isFastestLap) {
     lapTimeClass = 'text-[#B138DD] font-bold drop-shadow-[0_0_10px_rgba(177,56,221,0.65)]';
   } else if (driver.isPersonalBest) {
-    lapTimeClass = 'text-emerald-400 font-semibold drop-shadow-[0_0_6px_rgba(52,211,153,0.35)]';
+    lapTimeClass = 'text-emerald-600 dark:text-emerald-400 font-semibold drop-shadow-[0_0_6px_rgba(52,211,153,0.35)]';
   }
 
   return (
     <div
       onClick={onSelectCockpit}
       className={cn(
-        'group relative flex items-center justify-between px-3 py-2 border-b border-slate-800/80 transition-all duration-300 cursor-pointer',
-        isSelectedForCockpit && 'ring-1 ring-cyan-400 bg-cyan-950/20 shadow-[inset_0_0_12px_rgba(6,182,212,0.15)]',
+        'group relative flex items-center justify-between px-3 py-2 border-b border-slate-200 dark:border-slate-800/80 transition-all duration-200 cursor-pointer select-none',
+        isSelectedForCockpit && 'ring-1 ring-cyan-500 bg-cyan-50/70 dark:bg-cyan-950/20 shadow-[inset_0_0_12px_rgba(6,182,212,0.15)]',
         driver.isFastestLap
-          ? 'bg-[#B138DD]/10 border-l-4 border-l-[#B138DD] shadow-[inset_0_0_16px_rgba(177,56,221,0.18)] animate-pulse'
+          ? 'bg-[#B138DD]/10 border-l-4 border-l-[#B138DD] shadow-[inset_0_0_16px_rgba(177,56,221,0.18)]'
           : index % 2 === 0
-          ? 'bg-zinc-950/60'
-          : 'bg-zinc-900/30',
+          ? 'bg-white dark:bg-zinc-950/60'
+          : 'bg-slate-50/70 dark:bg-zinc-900/30',
         lapUpdated && driver.isFastestLap && 'ring-1 ring-[#B138DD] shadow-[0_0_20px_rgba(177,56,221,0.4)]',
-        'hover:bg-zinc-800/60'
+        'hover:bg-slate-100 dark:hover:bg-zinc-800/60'
       )}
       title="Click to tune into driver cockpit & DRS wing telemetry"
     >
@@ -118,10 +112,10 @@ export const DriverRow: React.FC<DriverRowProps> = ({
         <div
           className={cn(
             'w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center font-mono text-xs sm:text-sm font-black border transition-transform flex-shrink-0',
-            isP1 && 'bg-amber-500/20 border-amber-500/60 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]',
-            !isP1 && isPodium && 'bg-zinc-800 border-slate-600 text-zinc-100',
-            !isPodium && isTopTen && 'bg-zinc-900 border-slate-700/80 text-zinc-200',
-            !isTopTen && 'bg-zinc-950 border-slate-800 text-zinc-400'
+            isP1 && 'bg-amber-500/15 border-amber-500/60 text-amber-600 dark:text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]',
+            !isP1 && isPodium && 'bg-slate-200 dark:bg-zinc-800 border-slate-300 dark:border-slate-600 text-slate-800 dark:text-zinc-100',
+            !isPodium && isTopTen && 'bg-slate-100 dark:bg-zinc-900 border-slate-300 dark:border-slate-700/80 text-slate-700 dark:text-zinc-200',
+            !isTopTen && 'bg-slate-50 dark:bg-zinc-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-zinc-400'
           )}
         >
           {driver.position}
@@ -135,7 +129,7 @@ export const DriverRow: React.FC<DriverRowProps> = ({
         />
 
         {/* Driver Headshot Avatar */}
-        <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden flex-shrink-0 bg-zinc-900 border border-slate-700/80 shadow-inner flex items-center justify-center">
+        <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-slate-700/80 shadow-inner flex items-center justify-center">
           {driver.headshotUrl && !imageError ? (
             <img
               src={driver.headshotUrl}
@@ -146,7 +140,7 @@ export const DriverRow: React.FC<DriverRowProps> = ({
             />
           ) : (
             <div
-              className="w-full h-full flex items-center justify-center font-mono text-[10px] font-bold text-zinc-300"
+              className="w-full h-full flex items-center justify-center font-mono text-[10px] font-bold text-slate-600 dark:text-zinc-300"
               style={{ backgroundColor: `${driver.teamColor || '#52525b'}33` }}
             >
               {driver.nameAcronym.slice(0, 2)}
@@ -156,13 +150,13 @@ export const DriverRow: React.FC<DriverRowProps> = ({
 
         {/* Driver 3-letter Acronym + Number + Team */}
         <div className="flex items-baseline space-x-1.5 sm:space-x-2 min-w-0">
-          <span className="font-mono font-black text-sm sm:text-base tracking-wider text-zinc-100 uppercase">
+          <span className="font-mono font-black text-sm sm:text-base tracking-wider text-slate-900 dark:text-zinc-100 uppercase">
             {driver.nameAcronym}
           </span>
-          <span className="font-mono text-xs font-semibold text-zinc-500">
+          <span className="font-mono text-xs font-semibold text-slate-400 dark:text-zinc-500">
             #{driver.driverNumber}
           </span>
-          <span className="text-xs text-zinc-400 truncate max-w-[90px] sm:max-w-[130px] hidden md:inline-block">
+          <span className="text-xs text-slate-500 dark:text-zinc-400 truncate max-w-[90px] sm:max-w-[130px] hidden md:inline-block">
             {driver.teamName}
           </span>
         </div>
@@ -182,9 +176,9 @@ export const DriverRow: React.FC<DriverRowProps> = ({
         {driver.isFastestPitStop && (
           <span
             title={`Session Fastest Pit Stop: ${driver.bestPitStopDuration?.toFixed(2)}s`}
-            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)] flex-shrink-0"
+            className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)] flex-shrink-0"
           >
-            <Wrench className="w-3 h-3 text-amber-400" />
+            <Wrench className="w-3 h-3 text-amber-500 dark:text-amber-400" />
             <span className="text-[9px] font-black uppercase tracking-wider hidden sm:inline">
               {driver.bestPitStopDuration ? `${driver.bestPitStopDuration.toFixed(1)}s` : 'PIT'}
             </span>
@@ -195,7 +189,7 @@ export const DriverRow: React.FC<DriverRowProps> = ({
         {driver.drsState === 'ELIGIBLE' && (
           <span
             title="DRS Eligible: Within 1.000s detection zone of car ahead"
-            className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-black tracking-wider uppercase text-cyan-300 bg-cyan-500/20 border border-cyan-400/60 shadow-[0_0_8px_rgba(6,182,212,0.4)] animate-pulse flex-shrink-0"
+            className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-black tracking-wider uppercase text-cyan-600 dark:text-cyan-300 bg-cyan-500/15 dark:bg-cyan-500/20 border border-cyan-500/50 dark:border-cyan-400/60 shadow-[0_0_8px_rgba(6,182,212,0.3)] animate-pulse flex-shrink-0"
           >
             DRS
           </span>
@@ -217,7 +211,7 @@ export const DriverRow: React.FC<DriverRowProps> = ({
       <div className="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0 mr-2 sm:mr-4">
         {/* Tyre compound pill */}
         <div
-          className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 py-0.5 rounded-full bg-zinc-900 border border-slate-800/80 shadow-sm"
+          className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-slate-800/80 shadow-sm"
           title={`${driver.tyreCompound} (${driver.tyreAgeLaps} laps)`}
         >
           <span
@@ -230,7 +224,7 @@ export const DriverRow: React.FC<DriverRowProps> = ({
           >
             {tyreConfig.letter}
           </span>
-          <span className="text-[10px] sm:text-[11px] font-mono text-zinc-400 font-medium tracking-tight">
+          <span className="text-[10px] sm:text-[11px] font-mono text-slate-600 dark:text-zinc-400 font-medium tracking-tight">
             {driver.tyreAgeLaps}L
           </span>
         </div>
@@ -241,8 +235,8 @@ export const DriverRow: React.FC<DriverRowProps> = ({
             className={cn(
               'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border transition-colors flex-shrink-0',
               driver.isFastestPitStop
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/60 shadow-[0_0_8px_rgba(245,158,11,0.25)]'
-                : 'bg-zinc-900 text-zinc-400 border-slate-800'
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/60 shadow-[0_0_8px_rgba(245,158,11,0.25)]'
+                : 'bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-slate-800'
             )}
             title={
               driver.isFastestPitStop
@@ -261,19 +255,19 @@ export const DriverRow: React.FC<DriverRowProps> = ({
         <div className="w-14 sm:w-20 font-mono text-xs sm:text-sm flex items-center justify-end space-x-1">
           {driver.drsState === 'ELIGIBLE' && (
             <span
-              className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)] flex-shrink-0"
+              className="w-1.5 h-1.5 rounded-full bg-cyan-500 dark:bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)] flex-shrink-0"
               title="Within DRS Detection Range (< 1.0s)"
             />
           )}
           <span
             className={
               driver.drsState === 'ELIGIBLE'
-                ? 'text-cyan-300 font-semibold'
-                : 'text-zinc-300'
+                ? 'text-cyan-600 dark:text-cyan-300 font-semibold'
+                : 'text-slate-700 dark:text-zinc-300'
             }
           >
             {driver.intervalToAhead === '-' ? (
-              <span className="text-zinc-600">-</span>
+              <span className="text-slate-400 dark:text-zinc-600">-</span>
             ) : (
               driver.intervalToAhead
             )}
@@ -283,11 +277,11 @@ export const DriverRow: React.FC<DriverRowProps> = ({
         {/* Gap to leader */}
         <div className="w-16 sm:w-24 font-mono text-xs sm:text-sm">
           {driver.gapToLeader === 'LEADER' ? (
-            <span className="text-amber-400 font-bold tracking-tight">LEADER</span>
+            <span className="text-amber-600 dark:text-amber-400 font-bold tracking-tight">LEADER</span>
           ) : driver.gapToLeader === '-' ? (
-            <span className="text-zinc-600">-</span>
+            <span className="text-slate-400 dark:text-zinc-600">-</span>
           ) : (
-            <span className="text-zinc-200">{driver.gapToLeader}</span>
+            <span className="text-slate-700 dark:text-zinc-200">{driver.gapToLeader}</span>
           )}
         </div>
 

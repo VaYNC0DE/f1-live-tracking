@@ -8,7 +8,7 @@ import { PitStopCard } from '../components/PitStopCard';
 import { CockpitTelemetryCard } from '../components/CockpitTelemetryCard';
 import { TrackStatusBar } from '../components/TrackStatusBar';
 import { formatLapTime } from '../lib/utils';
-import { Zap, Award, Activity, RotateCcw, Timer, Wrench } from 'lucide-react';
+import { Award, Activity, Timer, Wrench } from 'lucide-react';
 
 export default function Home() {
   const {
@@ -43,8 +43,8 @@ export default function Home() {
   const totalLaps = sessionInfo?.circuit_short_name === 'Singapore' ? 62 : 71;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans antialiased">
-      {/* Header */}
+    <div className="min-h-screen bg-slate-100 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 flex flex-col font-sans antialiased transition-colors duration-200">
+      {/* Header with Theme Toggle */}
       <Header
         sessionInfo={sessionInfo}
         isLive={isLive}
@@ -68,25 +68,25 @@ export default function Home() {
         {/* Sub-Header Broadcast Bar: Fastest Lap, Race Leader, Fastest Pit Stop & Telemetry Feed */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Race Leader Card */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-zinc-900/70 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-md bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-                <Award className="w-4 h-4 text-amber-400" />
+              <div className="w-8 h-8 rounded-md bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 dark:border-amber-500/40 flex items-center justify-center">
+                <Award className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               </div>
               <div>
-                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
                   RACE LEADER
                 </div>
-                <div className="text-xs sm:text-sm font-black font-mono text-zinc-100">
+                <div className="text-xs sm:text-sm font-black font-mono text-slate-900 dark:text-zinc-100">
                   {drivers[0] ? (
                     <>
                       <span className="mr-1.5">{drivers[0].nameAcronym}</span>
-                      <span className="text-xs text-zinc-400 font-sans font-normal truncate max-w-[100px] inline-block align-bottom">
+                      <span className="text-xs text-slate-500 dark:text-zinc-400 font-sans font-normal truncate max-w-[100px] inline-block align-bottom">
                         ({drivers[0].teamName})
                       </span>
                     </>
                   ) : (
-                    <span className="text-zinc-500">P1 INITIALIZING</span>
+                    <span className="text-slate-400 dark:text-zinc-500">P1 INITIALIZING</span>
                   )}
                 </div>
               </div>
@@ -101,25 +101,25 @@ export default function Home() {
           </div>
 
           {/* Fastest Lap Card */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-zinc-900/70 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-md bg-[#B138DD]/20 border border-[#B138DD]/40 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-md bg-[#B138DD]/10 dark:bg-[#B138DD]/20 border border-[#B138DD]/30 dark:border-[#B138DD]/40 flex items-center justify-center">
                 <Timer className="w-4 h-4 text-[#B138DD]" />
               </div>
               <div>
                 <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#B138DD]">
                   FASTEST LAP
                 </div>
-                <div className="text-xs sm:text-sm font-black font-mono text-zinc-100">
+                <div className="text-xs sm:text-sm font-black font-mono text-slate-900 dark:text-zinc-100">
                   {fastestLapDriver ? (
                     <>
-                      <span className="text-zinc-200 mr-1.5">{fastestLapDriver.nameAcronym}</span>
+                      <span className="text-slate-800 dark:text-zinc-200 mr-1.5">{fastestLapDriver.nameAcronym}</span>
                       <span className="text-[#B138DD] font-bold">
                         {formatLapTime(fastestLapDriver.lastLapTime)}
                       </span>
                     </>
                   ) : (
-                    <span className="text-zinc-500">AWAITING CLASSIFICATION</span>
+                    <span className="text-slate-400 dark:text-zinc-500">AWAITING CLASSIFICATION</span>
                   )}
                 </div>
               </div>
@@ -134,35 +134,35 @@ export default function Home() {
           </div>
 
           {/* Fastest Pit Stop Card */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-zinc-900/70 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-md bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
-                <Wrench className="w-4 h-4 text-amber-400" />
+              <div className="w-8 h-8 rounded-md bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 dark:border-amber-500/40 flex items-center justify-center">
+                <Wrench className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               </div>
               <div>
                 <div className="flex items-center space-x-1.5">
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400">
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
                     FASTEST PIT STOP
                   </span>
                   {fastestPitStop && (
-                    <span className="text-[9px] font-mono font-bold px-1 rounded bg-zinc-800 text-zinc-400 border border-slate-800">
+                    <span className="text-[9px] font-mono font-bold px-1 rounded bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-slate-800">
                       {fastestPitStop.isStationary ? 'BOX' : 'LANE'}
                     </span>
                   )}
                 </div>
-                <div className="text-xs sm:text-sm font-black font-mono text-zinc-100">
+                <div className="text-xs sm:text-sm font-black font-mono text-slate-900 dark:text-zinc-100">
                   {fastestPitStop ? (
                     <>
-                      <span className="text-zinc-200 mr-1.5">{fastestPitStop.nameAcronym}</span>
-                      <span className="text-amber-400 font-bold">
+                      <span className="text-slate-800 dark:text-zinc-200 mr-1.5">{fastestPitStop.nameAcronym}</span>
+                      <span className="text-amber-600 dark:text-amber-400 font-bold">
                         {fastestPitStop.duration.toFixed(2)}s
                       </span>
-                      <span className="text-[11px] font-normal text-zinc-500 ml-1.5">
+                      <span className="text-[11px] font-normal text-slate-400 dark:text-zinc-500 ml-1.5">
                         (L{fastestPitStop.lapNumber})
                       </span>
                     </>
                   ) : (
-                    <span className="text-zinc-500">NO STOPS RECORDED</span>
+                    <span className="text-slate-400 dark:text-zinc-500">NO STOPS RECORDED</span>
                   )}
                 </div>
               </div>
@@ -177,27 +177,27 @@ export default function Home() {
           </div>
 
           {/* Telemetry Stream Status */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900/70 border border-slate-800 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-white dark:bg-zinc-900/70 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-md bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-emerald-400" />
+              <div className="w-8 h-8 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 dark:border-emerald-500/40 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                   TELEMETRY ENGINE
                 </div>
-                <div className="text-xs sm:text-sm font-semibold text-zinc-200">
+                <div className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-zinc-200">
                   {isLive ? 'Live Circuit Trackside' : 'Historical Session Playback'}
                 </div>
               </div>
             </div>
-            <div className="text-[10px] font-mono text-zinc-400 bg-zinc-950 px-2 py-1 rounded border border-slate-800 flex-shrink-0">
+            <div className="text-[10px] font-mono text-slate-600 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-950 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 flex-shrink-0">
               5s POLLING
             </div>
           </div>
         </div>
 
-        {/* Main Content Layout: Timing Tower (Left) & Circuit Map + Live Race Control (Right) */}
+        {/* Main Content Layout: Timing Tower (Left) & Cockpit Telemetry + Pit Stops (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* Timing Tower (7 cols on lg, 8 on xl) */}
           <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-4">
@@ -234,38 +234,38 @@ export default function Home() {
         </div>
 
         {/* Broadcast Graphic Legend Footer */}
-        <div className="mt-2 py-3 px-4 bg-zinc-900/40 border border-slate-800/80 rounded-lg flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400">
+        <div className="mt-2 py-3 px-4 bg-white/90 dark:bg-zinc-900/40 border border-slate-200 dark:border-slate-800/80 rounded-lg flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 dark:text-zinc-400 shadow-sm transition-colors">
           {/* Tyre compounds */}
           <div className="flex items-center flex-wrap gap-2 sm:gap-3">
-            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-500">
               Compounds:
             </span>
             <div className="flex items-center space-x-1">
-              <span className="w-3.5 h-3.5 rounded-full bg-red-500/20 border border-red-500 text-red-400 text-[9px] font-black flex items-center justify-center">
+              <span className="w-3.5 h-3.5 rounded-full bg-red-500/20 border border-red-500 text-red-500 text-[9px] font-black flex items-center justify-center">
                 S
               </span>
               <span className="text-[11px]">Soft</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="w-3.5 h-3.5 rounded-full bg-yellow-500/20 border border-yellow-400 text-yellow-400 text-[9px] font-black flex items-center justify-center">
+              <span className="w-3.5 h-3.5 rounded-full bg-yellow-500/20 border border-yellow-500 text-yellow-600 dark:text-yellow-400 text-[9px] font-black flex items-center justify-center">
                 M
               </span>
               <span className="text-[11px]">Medium</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="w-3.5 h-3.5 rounded-full bg-zinc-200/20 border border-zinc-200 text-zinc-100 text-[9px] font-black flex items-center justify-center">
+              <span className="w-3.5 h-3.5 rounded-full bg-slate-200 dark:bg-zinc-200/20 border border-slate-400 dark:border-zinc-200 text-slate-800 dark:text-zinc-100 text-[9px] font-black flex items-center justify-center">
                 H
               </span>
               <span className="text-[11px]">Hard</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 border border-emerald-500 text-emerald-400 text-[9px] font-black flex items-center justify-center">
+              <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 border border-emerald-500 text-emerald-600 dark:text-emerald-400 text-[9px] font-black flex items-center justify-center">
                 I
               </span>
               <span className="text-[11px]">Inter</span>
             </div>
             <div className="flex items-center space-x-1">
-              <span className="w-3.5 h-3.5 rounded-full bg-blue-500/20 border border-blue-500 text-blue-400 text-[9px] font-black flex items-center justify-center">
+              <span className="w-3.5 h-3.5 rounded-full bg-blue-500/20 border border-blue-500 text-blue-600 dark:text-blue-400 text-[9px] font-black flex items-center justify-center">
                 W
               </span>
               <span className="text-[11px]">Wet</span>
@@ -281,20 +281,20 @@ export default function Home() {
               </span>
             </div>
             <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
-              <span className="text-emerald-300 font-mono text-[11px] font-medium">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
+              <span className="text-emerald-600 dark:text-emerald-300 font-mono text-[11px] font-medium">
                 Personal Best
               </span>
             </div>
             <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]" />
-              <span className="text-amber-300 font-mono text-[11px] font-semibold">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]" />
+              <span className="text-amber-600 dark:text-amber-300 font-mono text-[11px] font-semibold">
                 Fastest Pit Stop
               </span>
             </div>
             <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.7)]" />
-              <span className="text-cyan-300 font-mono text-[11px] font-semibold">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 dark:bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.7)]" />
+              <span className="text-cyan-600 dark:text-cyan-300 font-mono text-[11px] font-semibold">
                 DRS Eligible (&lt; 1.0s)
               </span>
             </div>
