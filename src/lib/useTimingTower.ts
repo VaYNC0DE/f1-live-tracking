@@ -1,7 +1,9 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   ActiveRaceControlStatus,
+  CarData,
   Driver,
+  DriverCockpitTelemetry,
   DriverDrsState,
   DriverTimingRow,
   FastestPitStop,
@@ -18,6 +20,7 @@ import {
 } from './types';
 import {
   FALLBACK_SESSION_KEY,
+  getCarTelemetry,
   getDrivers,
   getIntervals,
   getLaps,
@@ -49,6 +52,9 @@ export interface UseTimingTowerResult {
   availableSessions: Session[];
   fastestPitStop: FastestPitStop | null;
   pitStops: PitStopSummary[];
+  selectedCockpitDriverNumber: number | null;
+  setSelectedCockpitDriverNumber: (driverNumber: number | null) => void;
+  cockpitTelemetry: DriverCockpitTelemetry | null;
 }
 
 const VALID_COMPOUNDS: Set<TyreCompound> = new Set([
@@ -656,6 +662,8 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
   });
   const [fastestPitStop, setFastestPitStop] = useState<FastestPitStop | null>(null);
   const [pitStops, setPitStops] = useState<PitStopSummary[]>([]);
+  const [selectedCockpitDriverNumber, setSelectedCockpitDriverNumber] = useState<number | null>(null);
+  const [cockpitTelemetry, setCockpitTelemetry] = useState<DriverCockpitTelemetry | null>(null);
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedSessionKey, setSelectedSessionKey] = useState<number | null>(null);
   const [availableSessions, setAvailableSessions] = useState<Session[]>([]);
@@ -764,6 +772,7 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
         setDrivers([]);
         setFastestPitStop(null);
         setPitStops([]);
+        setCockpitTelemetry(null);
         setIsLive(liveStatus);
         setRaceControlStatus({
           type: 'GREEN',
@@ -788,6 +797,51 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
       setSessionInfo(currentSession);
       setDrivers(normalizedRows);
       setIsLive(liveStatus);
+
+      // Fetch onboard car telemetry for focused driver (auto-defaults to P1 leader if none selected)
+      const targetDriverNum =
+        selectedCockpitDriverNumber || normalizedRows[0]?.driverNumber || null;
+
+      if (targetDriverNum) {
+        try {
+          await delay(250);
+          if (!isMountedRef.current) return;
+
+          const telemetryPoints = await getCarTelemetry(
+            sessionKey,
+            targetDriverNum,
+            liveStatus ? new Date(Date.now() - 30_000).toISOString() : undefined
+          );
+
+          if (telemetryPoints && telemetryPoints.length > 0) {
+            const latest = telemetryPoints[telemetryPoints.length - 1];
+            const driverRow =
+              normalizedRows.find((d) => d.driverNumber === targetDriverNum) || normalizedRows[0];
+            if (driverRow) {
+              setCockpitTelemetry({
+                driverNumber: targetDriverNum,
+                nameAcronym: driverRow.nameAcronym,
+                fullName: `${driverRow.nameAcronym} • ${driverRow.teamName}`,
+                teamName: driverRow.teamName,
+                teamColor: driverRow.teamColor,
+                headshotUrl: driverRow.headshotUrl,
+                speed: latest.speed,
+                gear: latest.n_gear,
+                rpm: latest.rpm,
+                throttle: latest.throttle,
+                brake: latest.brake,
+                isDrsOpen: latest.drs >= 10,
+                isDrsArmed: latest.drs === 8,
+                drsRawValue: latest.drs,
+                timestamp: latest.date,
+              });
+            }
+          }
+        } catch {
+          // Graceful fallback if car telemetry is unavailable for this specific driver
+        }
+      }
+
       setError(null);
     } catch (err) {
       if (!isMountedRef.current) return;
@@ -801,7 +855,7 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
         setIsLoading(false);
       }
     }
-  }, [selectedSessionKey]);
+  }, [selectedSessionKey, selectedCockpitDriverNumber]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -838,5 +892,8 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
     availableSessions,
     fastestPitStop,
     pitStops,
+    selectedCockpitDriverNumber,
+    setSelectedCockpitDriverNumber,
+    cockpitTelemetry,
   };
 }

@@ -6,6 +6,8 @@ import { Timer, Zap, Wrench } from 'lucide-react';
 interface DriverRowProps {
   driver: DriverTimingRow;
   index: number;
+  isSelectedForCockpit?: boolean;
+  onSelectCockpit?: () => void;
 }
 
 interface CompoundConfig {
@@ -61,7 +63,12 @@ const COMPOUND_CONFIGS: Record<TyreCompound, CompoundConfig> = {
   },
 };
 
-export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
+export const DriverRow: React.FC<DriverRowProps> = ({
+  driver,
+  index,
+  isSelectedForCockpit = false,
+  onSelectCockpit,
+}) => {
   const [imageError, setImageError] = React.useState(false);
   const [lapUpdated, setLapUpdated] = React.useState(false);
   const prevLapTimeRef = React.useRef(driver.lastLapTime);
@@ -91,16 +98,19 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
 
   return (
     <div
+      onClick={onSelectCockpit}
       className={cn(
-        'group relative flex items-center justify-between px-3 py-2 border-b border-slate-800/80 transition-all duration-300',
+        'group relative flex items-center justify-between px-3 py-2 border-b border-slate-800/80 transition-all duration-300 cursor-pointer',
+        isSelectedForCockpit && 'ring-1 ring-cyan-400 bg-cyan-950/20 shadow-[inset_0_0_12px_rgba(6,182,212,0.15)]',
         driver.isFastestLap
           ? 'bg-[#B138DD]/10 border-l-4 border-l-[#B138DD] shadow-[inset_0_0_16px_rgba(177,56,221,0.18)] animate-pulse'
           : index % 2 === 0
           ? 'bg-zinc-950/60'
           : 'bg-zinc-900/30',
         lapUpdated && driver.isFastestLap && 'ring-1 ring-[#B138DD] shadow-[0_0_20px_rgba(177,56,221,0.4)]',
-        'hover:bg-zinc-800/50'
+        'hover:bg-zinc-800/60'
       )}
+      title="Click to tune into driver cockpit & DRS wing telemetry"
     >
       {/* Left section: Position, Team Color Bar, Driver Info */}
       <div className="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0 flex-1">

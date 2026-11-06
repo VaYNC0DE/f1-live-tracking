@@ -6,6 +6,7 @@ import { Header } from '../components/Header';
 import { TimingTower } from '../components/TimingTower';
 import { CircuitCard } from '../components/CircuitCard';
 import { PitStopCard } from '../components/PitStopCard';
+import { CockpitTelemetryCard } from '../components/CockpitTelemetryCard';
 import { TrackStatusBar } from '../components/TrackStatusBar';
 import { formatLapTime } from '../lib/utils';
 import { Zap, Award, Activity, RotateCcw, Timer, Wrench } from 'lucide-react';
@@ -27,6 +28,9 @@ export default function Home() {
     availableSessions,
     fastestPitStop,
     pitStops,
+    selectedCockpitDriverNumber,
+    setSelectedCockpitDriverNumber,
+    cockpitTelemetry,
   } = useTimingTower(5000);
 
   // Find overall fastest lap driver
@@ -209,15 +213,23 @@ export default function Home() {
                   ? `${sessionInfo.year} ${sessionInfo.country_name || sessionInfo.location} Grand Prix - ${sessionInfo.session_name}`
                   : null
               }
+              selectedCockpitDriverNumber={selectedCockpitDriverNumber}
+              onSelectCockpitDriver={setSelectedCockpitDriverNumber}
             />
           </div>
 
-          {/* Circuit Map & Live Race Control Status + Pit Stop Card (5 cols on lg, 4 on xl) */}
+          {/* Circuit Map, Cockpit & DRS Telemetry, and Pit Stop Card (5 cols on lg, 4 on xl) */}
           <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-4">
             <CircuitCard
               sessionInfo={sessionInfo}
               raceControlStatus={raceControlStatus}
               totalLaps={totalLaps}
+            />
+            <CockpitTelemetryCard
+              telemetry={cockpitTelemetry}
+              drivers={drivers}
+              selectedDriverNumber={selectedCockpitDriverNumber}
+              onSelectDriver={setSelectedCockpitDriverNumber}
             />
             <PitStopCard
               fastestPitStop={fastestPitStop}

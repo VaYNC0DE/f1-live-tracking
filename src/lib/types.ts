@@ -163,6 +163,37 @@ export interface DriverTimingRow {
   headshotUrl?: string | null;
 }
 
+export interface CarData {
+  brake: number;
+  date: string;
+  driver_number: number;
+  drs: number;
+  meeting_key: number;
+  n_gear: number;
+  rpm: number;
+  session_key: number;
+  speed: number;
+  throttle: number;
+}
+
+export interface DriverCockpitTelemetry {
+  driverNumber: number;
+  nameAcronym: string;
+  fullName: string;
+  teamName: string;
+  teamColor: string;
+  headshotUrl?: string | null;
+  speed: number;
+  gear: number;
+  rpm: number;
+  throttle: number;
+  brake: number;
+  isDrsOpen: boolean;
+  isDrsArmed: boolean;
+  drsRawValue: number;
+  timestamp: string;
+}
+
 export interface TrackState {
   condition: 'DRY' | 'WET';
   trackTemp: number | null;

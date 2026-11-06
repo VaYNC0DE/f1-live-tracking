@@ -1,4 +1,14 @@
-import { Driver, Interval, Lap, PitStop, RaceControlMessage, Session, Stint, TrackWeather } from './types';
+import {
+  CarData,
+  Driver,
+  Interval,
+  Lap,
+  PitStop,
+  RaceControlMessage,
+  Session,
+  Stint,
+  TrackWeather,
+} from './types';
 
 const BASE_URL = 'https://api.openf1.org/v1';
 
@@ -35,12 +45,16 @@ async function fetchWithCacheAndDebounce<T>(
   params: Record<string, string | number>,
   ttlMs: number = DEFAULT_CACHE_TTL_MS
 ): Promise<T> {
-  const searchParams = new URLSearchParams();
+  const queryParts: string[] = [];
   Object.entries(params).forEach(([key, value]) => {
-    searchParams.append(key, String(value));
+    if (key.endsWith('>=') || key.endsWith('<=') || key.endsWith('>') || key.endsWith('<')) {
+      queryParts.push(`${key}${value}`);
+    } else {
+      queryParts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+    }
   });
 
-  const url = `${BASE_URL}${endpoint}?${searchParams.toString()}`;
+  const url = `${BASE_URL}${endpoint}?${queryParts.join('&')}`;
   const now = Date.now();
 
   // 1. Return fresh cached response if still within TTL
@@ -280,5 +294,28 @@ export async function getTrackWeather(sessionKey: number): Promise<TrackWeather[
     '/weather',
     { session_key: sessionKey },
     DEFAULT_CACHE_TTL_MS
+  );
+}
+
+/**
+ * Fetches high-frequency car telemetry (speed, throttle, brake, rpm, gear, physical DRS flap)
+ * for a single focused driver.
+ */
+export async function getCarTelemetry(
+  sessionKey: number,
+  driverNumber: number,
+  sinceDate?: string
+): Promise<CarData[]> {
+  const params: Record<string, string | number> = {
+    session_key: sessionKey,
+    driver_number: driverNumber,
+  };
+  if (sinceDate) {
+    params['date>='] = sinceDate;
+  }
+  return fetchWithCacheAndDebounce<CarData[]>(
+    '/car_data',
+    params,
+    3000
   );
 }

@@ -10,6 +10,8 @@ interface TimingTowerProps {
   isUpcoming?: boolean;
   sessionScheduledTime?: string | null;
   sessionTitle?: string | null;
+  selectedCockpitDriverNumber?: number | null;
+  onSelectCockpitDriver?: (driverNumber: number) => void;
 }
 
 export const TimingTower: React.FC<TimingTowerProps> = ({
@@ -19,6 +21,8 @@ export const TimingTower: React.FC<TimingTowerProps> = ({
   isUpcoming = false,
   sessionScheduledTime,
   sessionTitle,
+  selectedCockpitDriverNumber,
+  onSelectCockpitDriver,
 }) => {
   return (
     <div className="w-full bg-zinc-950/90 border border-slate-800 rounded-lg shadow-2xl backdrop-blur-sm flex flex-col overflow-hidden">
@@ -103,7 +107,13 @@ export const TimingTower: React.FC<TimingTowerProps> = ({
       ) : (
         <div className="divide-y divide-slate-800/60">
           {drivers.map((driver, index) => (
-            <DriverRow key={driver.driverNumber} driver={driver} index={index} />
+            <DriverRow
+              key={driver.driverNumber}
+              driver={driver}
+              index={index}
+              isSelectedForCockpit={selectedCockpitDriverNumber === driver.driverNumber}
+              onSelectCockpit={() => onSelectCockpitDriver?.(driver.driverNumber)}
+            />
           ))}
         </div>
       )}
