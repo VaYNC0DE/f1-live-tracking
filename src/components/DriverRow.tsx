@@ -181,6 +181,16 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
           </span>
         )}
 
+        {/* DRS Detection Zone Eligible Badge (< 1.0s behind car ahead) */}
+        {driver.drsState === 'ELIGIBLE' && (
+          <span
+            title="DRS Eligible: Within 1.000s detection zone of car ahead"
+            className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-black tracking-wider uppercase text-cyan-300 bg-cyan-500/20 border border-cyan-400/60 shadow-[0_0_8px_rgba(6,182,212,0.4)] animate-pulse flex-shrink-0"
+          >
+            DRS
+          </span>
+        )}
+
         {/* Red Flashing 'IN PIT' Badge */}
         {driver.inPit && (
           <span className="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-black tracking-wider uppercase bg-red-600 text-white border border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.7)] animate-pulse flex-shrink-0">
@@ -237,13 +247,27 @@ export const DriverRow: React.FC<DriverRowProps> = ({ driver, index }) => {
 
       {/* Right section: Interval, Gap to leader, and Last Lap Time */}
       <div className="flex items-center justify-end space-x-3 sm:space-x-6 flex-shrink-0 text-right">
-        {/* Interval to car ahead */}
-        <div className="w-14 sm:w-20 font-mono text-xs sm:text-sm text-zinc-300">
-          {driver.intervalToAhead === '-' ? (
-            <span className="text-zinc-600">-</span>
-          ) : (
-            driver.intervalToAhead
+        {/* Interval to car ahead with DRS indicator */}
+        <div className="w-14 sm:w-20 font-mono text-xs sm:text-sm flex items-center justify-end space-x-1">
+          {driver.drsState === 'ELIGIBLE' && (
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)] flex-shrink-0"
+              title="Within DRS Detection Range (< 1.0s)"
+            />
           )}
+          <span
+            className={
+              driver.drsState === 'ELIGIBLE'
+                ? 'text-cyan-300 font-semibold'
+                : 'text-zinc-300'
+            }
+          >
+            {driver.intervalToAhead === '-' ? (
+              <span className="text-zinc-600">-</span>
+            ) : (
+              driver.intervalToAhead
+            )}
+          </span>
         </div>
 
         {/* Gap to leader */}

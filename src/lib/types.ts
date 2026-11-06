@@ -126,6 +126,19 @@ export interface PitStopSummary {
   date: string;
 }
 
+export interface TrackWeather {
+  air_temperature: number;
+  track_temperature: number;
+  humidity: number;
+  pressure: number;
+  rainfall: number; // 0 = dry, 1 = wet
+  wind_direction: number;
+  wind_speed: number;
+  date: string;
+}
+
+export type DriverDrsState = 'ELIGIBLE' | 'OFF' | 'DISABLED';
+
 /**
  * Unified UI Model for the Timing Tower
  */
@@ -146,7 +159,21 @@ export interface DriverTimingRow {
   pitStopCount: number;
   isFastestPitStop: boolean;
   bestPitStopDuration: number | null;
+  drsState: DriverDrsState;
   headshotUrl?: string | null;
+}
+
+export interface TrackState {
+  condition: 'DRY' | 'WET';
+  trackTemp: number | null;
+  airTemp: number | null;
+  humidity: number | null;
+  windSpeed: number | null;
+  rainfall: boolean;
+  drsStatus: 'ENABLED' | 'DISABLED';
+  safetyCarStatus: 'DEPLOYED' | 'VSC' | 'IN_THIS_LAP' | 'OFF';
+  flag: RaceControlFlagType;
+  flagLabel: string;
 }
 
 export interface RaceControlMessage {

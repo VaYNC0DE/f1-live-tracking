@@ -1,4 +1,4 @@
-import { Driver, Interval, Lap, PitStop, RaceControlMessage, Session, Stint } from './types';
+import { Driver, Interval, Lap, PitStop, RaceControlMessage, Session, Stint, TrackWeather } from './types';
 
 const BASE_URL = 'https://api.openf1.org/v1';
 
@@ -267,6 +267,17 @@ export async function getRaceControl(sessionKey: number): Promise<RaceControlMes
 export async function getPitStops(sessionKey: number): Promise<PitStop[]> {
   return fetchWithCacheAndDebounce<PitStop[]>(
     '/pit',
+    { session_key: sessionKey },
+    DEFAULT_CACHE_TTL_MS
+  );
+}
+
+/**
+ * Fetches track meteorological telemetry (track & air temp, rainfall, humidity, wind).
+ */
+export async function getTrackWeather(sessionKey: number): Promise<TrackWeather[]> {
+  return fetchWithCacheAndDebounce<TrackWeather[]>(
+    '/weather',
     { session_key: sessionKey },
     DEFAULT_CACHE_TTL_MS
   );

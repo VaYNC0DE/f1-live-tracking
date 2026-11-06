@@ -6,6 +6,7 @@ import { Header } from '../components/Header';
 import { TimingTower } from '../components/TimingTower';
 import { CircuitCard } from '../components/CircuitCard';
 import { PitStopCard } from '../components/PitStopCard';
+import { TrackStatusBar } from '../components/TrackStatusBar';
 import { formatLapTime } from '../lib/utils';
 import { Zap, Award, Activity, RotateCcw, Timer, Wrench } from 'lucide-react';
 
@@ -18,6 +19,7 @@ export default function Home() {
     isLive,
     isUpcoming,
     raceControlStatus,
+    trackState,
     selectedYear,
     setSelectedYear,
     selectedSessionKey,
@@ -54,6 +56,12 @@ export default function Home() {
 
       {/* Main Broadcast Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 flex flex-col gap-4">
+        {/* Track State & Safety Car Telemetry Bar */}
+        <TrackStatusBar
+          trackState={trackState}
+          raceControlStatus={raceControlStatus}
+        />
+
         {/* Sub-Header Broadcast Bar: Fastest Lap, Race Leader, Fastest Pit Stop & Telemetry Feed */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Race Leader Card */}
@@ -276,6 +284,12 @@ export default function Home() {
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]" />
               <span className="text-amber-300 font-mono text-[11px] font-semibold">
                 Fastest Pit Stop
+              </span>
+            </div>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.7)]" />
+              <span className="text-cyan-300 font-mono text-[11px] font-semibold">
+                DRS Eligible (&lt; 1.0s)
               </span>
             </div>
           </div>

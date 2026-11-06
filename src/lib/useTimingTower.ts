@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   ActiveRaceControlStatus,
   Driver,
+  DriverDrsState,
   DriverTimingRow,
   FastestPitStop,
   Interval,
@@ -11,6 +12,8 @@ import {
   RaceControlMessage,
   Session,
   Stint,
+  TrackState,
+  TrackWeather,
   TyreCompound,
 } from './types';
 import {
@@ -24,6 +27,7 @@ import {
   getSessionByKey,
   getSessionsByYear,
   getStints,
+  getTrackWeather,
   isSessionCurrentlyActive,
 } from './openf1Client';
 import { getTeamColor } from './teamColors';
@@ -37,6 +41,7 @@ export interface UseTimingTowerResult {
   isLive: boolean;
   isUpcoming: boolean;
   raceControlStatus: ActiveRaceControlStatus;
+  trackState: TrackState;
   selectedYear: number;
   setSelectedYear: (year: number) => void;
   selectedSessionKey: number | null;
@@ -162,7 +167,8 @@ export function buildTimingTowerRows(
   stints: Stint[],
   driverPitCounts: Map<number, number> = new Map(),
   driverBestPitDuration: Map<number, number> = new Map(),
-  fastestPitDriverNumber: number | null = null
+  fastestPitDriverNumber: number | null = null,
+  drsStatus: 'ENABLED' | 'DISABLED' = 'ENABLED'
 ): DriverTimingRow[] {
   // 1. Deduplicate drivers by driver_number
   const driverMap = new Map<number, Driver>();
@@ -358,6 +364,31 @@ export function buildTimingTowerRows(
     const isFastestPitStop =
       fastestPitDriverNumber !== null && driver.driver_number === fastestPitDriverNumber;
 
+    // Determine DRS state:
+    // If Race Control disables DRS (wet, safety car, red flag, or neutralized): DISABLED
+    // If P1 (leader): OFF (no car ahead)
+    // If interval to car ahead <= 1.000s: ELIGIBLE (in detection range)
+    let drsState: DriverDrsState = 'OFF';
+    if (drsStatus === 'DISABLED') {
+      drsState = 'DISABLED';
+    } else if (position === 1) {
+      drsState = 'OFF';
+    } else {
+      const rawIntervalVal = latestInterval?.interval;
+      let gapSec: number | null = null;
+      if (typeof rawIntervalVal === 'number') {
+        gapSec = rawIntervalVal;
+      } else if (typeof rawIntervalVal === 'string') {
+        const parsed = parseFloat(rawIntervalVal.replace(/^\+/, ''));
+        if (!Number.isNaN(parsed)) gapSec = parsed;
+      }
+      if (gapSec !== null && gapSec <= 1.000 && gapSec >= 0) {
+        drsState = 'ELIGIBLE';
+      } else {
+        drsState = 'OFF';
+      }
+    }
+
     // Format gaps (with fallback to lap-time delta during Practice/Qualifying)
     let gapToLeader = formatGapToLeader(position, latestInterval?.gap_to_leader);
     let intervalToAhead = formatIntervalToAhead(position, latestInterval?.interval);
@@ -389,6 +420,7 @@ export function buildTimingTowerRows(
       pitStopCount,
       isFastestPitStop,
       bestPitStopDuration,
+      drsState,
       headshotUrl: driver.headshot_url || null,
     };
   });
@@ -489,6 +521,88 @@ export function parseActiveRaceControlStatus(
 }
 
 /**
+ * Parses track weather and race control messages into unified TrackState.
+ */
+export function parseTrackState(
+  weatherRecords: TrackWeather[],
+  raceControl: RaceControlMessage[],
+  activeRaceControl: ActiveRaceControlStatus
+): TrackState {
+  const latestWeather =
+    weatherRecords && weatherRecords.length > 0 ? weatherRecords[weatherRecords.length - 1] : null;
+
+  const sortedRC = [...(raceControl || [])].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  let drsStatus: 'ENABLED' | 'DISABLED' = 'ENABLED';
+  for (const msg of sortedRC) {
+    const text = (msg.message || '').toUpperCase();
+    if (text.includes('DRS ENABLED')) {
+      drsStatus = 'ENABLED';
+      break;
+    }
+    if (text.includes('DRS DISABLED')) {
+      drsStatus = 'DISABLED';
+      break;
+    }
+  }
+
+  // Safety Car, VSC, or Red Flag always disables DRS by regulation
+  if (
+    activeRaceControl.type === 'SAFETY CAR' ||
+    activeRaceControl.type === 'VIRTUAL SAFETY CAR' ||
+    activeRaceControl.type === 'RED'
+  ) {
+    drsStatus = 'DISABLED';
+  }
+
+  let safetyCarStatus: 'DEPLOYED' | 'VSC' | 'IN_THIS_LAP' | 'OFF' = 'OFF';
+  for (const msg of sortedRC) {
+    const text = (msg.message || '').toUpperCase();
+    if (text.includes('SAFETY CAR IN THIS LAP') || text.includes('VSC ENDING')) {
+      safetyCarStatus = 'IN_THIS_LAP';
+      break;
+    }
+    if (text.includes('VIRTUAL SAFETY CAR') || text.includes('VSC')) {
+      safetyCarStatus = 'VSC';
+      break;
+    }
+    if (text.includes('SAFETY CAR') && !text.includes('CLEAR')) {
+      safetyCarStatus = 'DEPLOYED';
+      break;
+    }
+    if (text.includes('TRACK CLEAR') || text.includes('GREEN LIGHT')) {
+      safetyCarStatus = 'OFF';
+      break;
+    }
+  }
+
+  if (activeRaceControl.type === 'SAFETY CAR' && safetyCarStatus !== 'IN_THIS_LAP') {
+    safetyCarStatus = 'DEPLOYED';
+  } else if (activeRaceControl.type === 'VIRTUAL SAFETY CAR' && safetyCarStatus !== 'IN_THIS_LAP') {
+    safetyCarStatus = 'VSC';
+  } else if (activeRaceControl.type === 'GREEN' && safetyCarStatus !== 'IN_THIS_LAP') {
+    safetyCarStatus = 'OFF';
+  }
+
+  const isWet = Boolean(latestWeather && latestWeather.rainfall === 1);
+
+  return {
+    condition: isWet ? 'WET' : 'DRY',
+    trackTemp: latestWeather?.track_temperature ?? null,
+    airTemp: latestWeather?.air_temperature ?? null,
+    humidity: latestWeather?.humidity ?? null,
+    windSpeed: latestWeather?.wind_speed ?? null,
+    rainfall: isWet,
+    drsStatus,
+    safetyCarStatus,
+    flag: activeRaceControl.type,
+    flagLabel: activeRaceControl.label,
+  };
+}
+
+/**
  * Finds the most recent session with recorded data or the latest completed race
  * within the given year's sessions list.
  */
@@ -527,6 +641,18 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
     type: 'GREEN',
     label: 'TRACK CLEAR',
     message: 'All sectors green',
+  });
+  const [trackState, setTrackState] = useState<TrackState>({
+    condition: 'DRY',
+    trackTemp: null,
+    airTemp: null,
+    humidity: null,
+    windSpeed: null,
+    rainfall: false,
+    drsStatus: 'ENABLED',
+    safetyCarStatus: 'OFF',
+    flag: 'GREEN',
+    flagLabel: 'TRACK CLEAR',
   });
   const [fastestPitStop, setFastestPitStop] = useState<FastestPitStop | null>(null);
   const [pitStops, setPitStops] = useState<PitStopSummary[]>([]);
@@ -610,9 +736,17 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
 
       const rawPitStops = await getPitStops(sessionKey);
       if (!isMountedRef.current) return;
+      await delay(250);
+      if (!isMountedRef.current) return;
+
+      const rawWeather = await getTrackWeather(sessionKey);
+      if (!isMountedRef.current) return;
 
       const currentRaceControl = parseActiveRaceControlStatus(rawRaceControl);
       setRaceControlStatus(currentRaceControl);
+
+      const currentTrackState = parseTrackState(rawWeather, rawRaceControl, currentRaceControl);
+      setTrackState(currentTrackState);
 
       const parsedPit = parsePitStops(rawPitStops, rawDrivers);
       setFastestPitStop(parsedPit.fastestPitStop);
@@ -647,7 +781,8 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
         rawStints,
         parsedPit.driverPitCounts,
         parsedPit.driverBestPitDuration,
-        parsedPit.fastestDriverNumber
+        parsedPit.fastestDriverNumber,
+        currentTrackState.drsStatus
       );
 
       setSessionInfo(currentSession);
@@ -695,6 +830,7 @@ export function useTimingTower(refreshIntervalMs: number = 5000): UseTimingTower
     isLive,
     isUpcoming,
     raceControlStatus,
+    trackState,
     selectedYear,
     setSelectedYear,
     selectedSessionKey,
