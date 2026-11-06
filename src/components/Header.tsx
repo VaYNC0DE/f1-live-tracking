@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Session } from '../lib/types';
-import { Flag, Clock, Sun, Moon } from 'lucide-react';
+import { Flag, Clock, Sun, Moon, Github } from 'lucide-react';
 import { useTheme } from '../lib/themeContext';
 
 interface HeaderProps {
@@ -126,8 +126,8 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Right section: Lap/Time Counter, Green Pulsing LIVE SYNC badge & Light/Dark Mode Toggle */}
-          <div className="flex items-center justify-between md:justify-end space-x-2.5 sm:space-x-3.5">
+          {/* Right section: Lap/Time Counter, LIVE SYNC badge, Light/Dark Toggle & GitHub Link */}
+          <div className="flex items-center justify-between md:justify-end space-x-2 sm:space-x-2.5">
             {/* Lap / Time Counter */}
             <div className="flex items-center space-x-3 bg-slate-100/90 dark:bg-zinc-900/90 border border-slate-200 dark:border-slate-800 px-3.5 py-1.5 rounded-lg shadow-inner">
               <div className="flex items-center space-x-2 border-r border-slate-300 dark:border-slate-800 pr-3">
@@ -180,6 +180,18 @@ export const Header: React.FC<HeaderProps> = ({
                 <Sun className="w-4 h-4 text-amber-400 hover:rotate-45 transition-transform duration-200" />
               )}
             </button>
+
+            {/* GitHub Repository Link Button */}
+            <a
+              href="https://github.com/VaYNC0DE/f1-live-tracking"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View source code on GitHub"
+              title="View GitHub Repository"
+              className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900/90 dark:hover:bg-zinc-800 border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-colors shadow-sm flex items-center justify-center cursor-pointer flex-shrink-0"
+            >
+              <Github className="w-4 h-4" />
+            </a>
           </div>
         </div>
       </div>
