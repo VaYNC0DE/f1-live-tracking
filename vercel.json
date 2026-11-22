@@ -15,7 +15,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!_framework|.*\\..*).*)",
       "destination": "/index.html"
     }
   ]

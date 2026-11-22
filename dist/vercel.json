@@ -1,4 +1,22 @@
 {
+  "framework": null,
   "buildCommand": "./build.sh",
-  "outputDirectory": "dist/wwwroot"
+  "outputDirectory": "dist/wwwroot",
+  "headers": [
+    {
+      "source": "/_framework/(.*).wasm",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/wasm"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!_framework|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
