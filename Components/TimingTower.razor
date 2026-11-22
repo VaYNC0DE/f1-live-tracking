@@ -1,0 +1,151 @@
+@using F1LiveTracker.Models
+@using F1LiveTracker.Services
+@inject TimingTowerState State
+
+<div class="w-full bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm dark:shadow-2xl backdrop-blur-sm flex flex-col overflow-hidden transition-colors">
+    <!-- Table Column Headers -->
+    <div class="flex items-center justify-between px-3 py-2.5 bg-slate-100 dark:bg-zinc-900/95 border-b border-slate-200 dark:border-slate-700/80 text-[11px] font-mono font-bold tracking-wider text-slate-600 dark:text-zinc-400 uppercase select-none sticky top-0 z-10">
+        <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0 flex-1">
+            <span class="w-6 sm:w-7 text-center">POS</span>
+            <span class="w-1.5"></span>
+            <span>DRIVER</span>
+        </div>
+
+        <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 mr-2 sm:mr-4">
+            <span class="w-14 text-center">TYRE</span>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3 sm:space-x-6 flex-shrink-0 text-right">
+            <span class="w-14 sm:w-20">INTERVAL</span>
+            <span class="w-16 sm:w-24">GAP</span>
+            <span class="w-20 sm:w-28">LAST LAP</span>
+        </div>
+    </div>
+
+    <!-- Rows List -->
+    <div class="overflow-y-auto max-h-[820px] divide-y divide-slate-200 dark:divide-slate-800/60">
+        @if (State.IsLoading && State.Drivers.Count == 0)
+        {
+            <div class="p-8 text-center text-xs font-mono text-slate-400 dark:text-zinc-500 animate-pulse">
+                Synchronizing OpenF1 Telemetry Streams...
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(State.ErrorMessage) && State.Drivers.Count == 0)
+        {
+            <div class="py-16 px-4 text-center">
+                <div class="text-3xl mb-2">⚠️</div>
+                <h3 class="text-base font-semibold text-slate-800 dark:text-zinc-200 mb-1">
+                    Unable to Load Timing Telemetry
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-zinc-400 max-w-md mx-auto mb-4">
+                    @State.ErrorMessage
+                </p>
+            </div>
+        }
+        else
+        {
+            @for (int i = 0; i < State.Drivers.Count; i++)
+            {
+                var driver = State.Drivers[i];
+                var isSelected = State.SelectedCockpitDriverNumber == driver.DriverNumber;
+                var isEven = i % 2 == 0;
+
+                <div @onclick="() => State.SelectCockpitDriver(driver.DriverNumber)"
+                     class="group relative flex items-center justify-between px-3 py-2 border-b border-slate-200 dark:border-slate-800/80 transition-all duration-200 cursor-pointer select-none @(isSelected ? "ring-1 ring-cyan-500 bg-cyan-50/70 dark:bg-cyan-950/20" : driver.IsFastestLap ? "bg-[#B138DD]/10 border-l-4 border-l-[#B138DD]" : isEven ? "bg-white dark:bg-zinc-950/60" : "bg-slate-50/70 dark:bg-zinc-900/30") hover:bg-slate-100 dark:hover:bg-zinc-800/60">
+                    
+                    <!-- Left: Position & Driver -->
+                    <div class="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0 flex-1">
+                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center font-mono text-xs sm:text-sm font-black border transition-transform flex-shrink-0 @(driver.Position == 1 ? "bg-amber-500/15 border-amber-500/60 text-amber-600 dark:text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]" : driver.Position <= 3 ? "bg-slate-200 dark:bg-zinc-800 border-slate-300 dark:border-slate-600 text-slate-800 dark:text-zinc-100" : driver.Position <= 10 ? "bg-slate-100 dark:bg-zinc-900 border-slate-300 dark:border-slate-700/80 text-slate-700 dark:text-zinc-200" : "bg-slate-50 dark:bg-zinc-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-zinc-400")">
+                            @driver.Position
+                        </div>
+
+                        <!-- Team Color Stripe -->
+                        <div class="w-1 sm:w-1.5 h-6 sm:h-7 rounded-full flex-shrink-0 shadow-sm"
+                             style="background-color: @driver.TeamColor;"></div>
+
+                        <!-- Driver Info -->
+                        <div class="flex items-baseline space-x-1.5 sm:space-x-2 min-w-0">
+                            <span class="font-mono font-black text-sm sm:text-base tracking-wider text-slate-900 dark:text-zinc-100 uppercase">
+                                @driver.NameAcronym
+                            </span>
+                            <span class="font-mono text-xs font-semibold text-slate-400 dark:text-zinc-500">
+                                #@driver.DriverNumber
+                            </span>
+                            <span class="text-xs text-slate-500 dark:text-zinc-400 truncate max-w-[90px] sm:max-w-[130px] hidden md:inline-block">
+                                @driver.TeamName
+                            </span>
+                        </div>
+
+                        <!-- Fastest Lap Badge -->
+                        @if (driver.IsFastestLap)
+                        {
+                            <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-[#B138DD] bg-[#B138DD]/15 border border-[#B138DD]/50 animate-pulse flex-shrink-0">
+                                <span>FL</span>
+                            </span>
+                        }
+
+                        <!-- Fastest Pit Stop Badge -->
+                        @if (driver.IsFastestPitStop)
+                        {
+                            <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 border border-amber-500/50 flex-shrink-0">
+                                <span>@(driver.BestPitStopDuration.HasValue ? $"{driver.BestPitStopDuration.Value:F1}s" : "PIT")</span>
+                            </span>
+                        }
+
+                        <!-- DRS Zone Eligible Badge -->
+                        @if (driver.DrsState == "ELIGIBLE")
+                        {
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-black tracking-wider uppercase text-cyan-600 dark:text-cyan-300 bg-cyan-500/15 dark:bg-cyan-500/20 border border-cyan-500/50 dark:border-cyan-400/60 shadow-[0_0_8px_rgba(6,182,212,0.3)] animate-pulse flex-shrink-0">
+                                DRS
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Center: Tyre Pill & Pit Count -->
+                    <div class="flex items-center space-x-1.5 sm:space-x-2.5 flex-shrink-0 mr-2 sm:mr-4">
+                        <div class="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-slate-800/80 shadow-sm">
+                            <span class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black border leading-none @(driver.TyreCompound == "SOFT" ? "bg-red-500/20 text-red-500 border-red-500" : driver.TyreCompound == "MEDIUM" ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border-yellow-500" : "bg-slate-200 text-slate-800 border-slate-400")">
+                                @(driver.TyreCompound.Length > 0 ? driver.TyreCompound[0] : 'S')
+                            </span>
+                            <span class="text-[10px] sm:text-[11px] font-mono text-slate-600 dark:text-zinc-400 font-medium tracking-tight">
+                                @(driver.TyreAgeLaps)L
+                            </span>
+                        </div>
+
+                        @if (driver.PitStopCount > 0)
+                        {
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border flex-shrink-0 @(driver.IsFastestPitStop ? "bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/60" : "bg-slate-100 dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-slate-800")">
+                                @(driver.PitStopCount)P
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Right: Interval, Gap & Last Lap -->
+                    <div class="flex items-center justify-end space-x-3 sm:space-x-6 flex-shrink-0 text-right">
+                        <div class="w-14 sm:w-20 font-mono text-xs sm:text-sm flex items-center justify-end space-x-1">
+                            @if (driver.DrsState == "ELIGIBLE")
+                            {
+                                <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 dark:bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)] flex-shrink-0"></span>
+                            }
+                            <span class="@(driver.DrsState == "ELIGIBLE" ? "text-cyan-600 dark:text-cyan-300 font-semibold" : "text-slate-700 dark:text-zinc-300")">
+                                @driver.IntervalToAhead
+                            </span>
+                        </div>
+
+                        <div class="w-16 sm:w-24 font-mono text-xs sm:text-sm">
+                            <span class="@(driver.GapToLeader == "LEADER" ? "text-amber-600 dark:text-amber-400 font-bold" : "text-slate-700 dark:text-zinc-200")">
+                                @driver.GapToLeader
+                            </span>
+                        </div>
+
+                        <div class="w-20 sm:w-28 flex items-center justify-end space-x-1.5">
+                            <span class="text-xs sm:text-sm tracking-tight @(driver.IsFastestLap ? "text-[#B138DD] font-bold drop-shadow-[0_0_10px_rgba(177,56,221,0.65)]" : driver.IsPersonalBest ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-slate-700 dark:text-zinc-300 font-mono")">
+                                @FormatUtils.FormatLapTime(driver.LastLapTime)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

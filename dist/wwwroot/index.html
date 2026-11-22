@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>F1 Live Timing Tower | Broadcast Telemetry</title>
+    <base href="/" />
+    <!-- Tailwind CSS with class-based Dark Mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+                    }
+                }
+            }
+        };
+    </script>
+    <!-- Anti-FOUC theme detector -->
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('f1_theme');
+                if (saved === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                    document.documentElement.style.colorScheme = 'light';
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.style.colorScheme = 'dark';
+                }
+            } catch (e) {}
+        })();
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 antialiased selection:bg-red-600 selection:text-white transition-colors duration-200">
+    <div id="app">
+        <!-- Pit Wall Splash Loader -->
+        <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+            <div class="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center font-black text-white text-xl tracking-tighter shadow-[0_0_25px_rgba(220,38,38,0.5)] mb-4 animate-bounce">
+                F1
+            </div>
+            <h2 class="text-lg font-black font-mono uppercase tracking-wider text-slate-900 dark:text-zinc-100 mb-1">
+                F1 Live Timing Tower
+            </h2>
+            <p class="text-xs font-mono text-slate-500 dark:text-zinc-400">
+                Starting C# WebAssembly Engine & Telemetry Feeds...
+            </p>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui" class="hidden">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>
