@@ -1,6 +1,7 @@
 @using F1LiveTracker.Services
 @inject TimingTowerState State
 @inject ThemeState Theme
+@implements IDisposable
 
 <header class="w-full bg-white/95 dark:bg-zinc-950 border-b border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl backdrop-blur-md sticky top-0 z-50 transition-colors duration-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
@@ -118,11 +119,23 @@
 
     protected override void OnInitialized()
     {
+        State.OnChange += OnStateChanged;
         _clockTimer = new System.Threading.Timer(_ =>
         {
             ClockTime = DateTime.UtcNow.ToString("HH:mm:ss") + " UTC";
             InvokeAsync(StateHasChanged);
         }, null, 1000, 1000);
+    }
+
+    private void OnStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChanged;
+        _clockTimer?.Dispose();
     }
 
     private async Task OnYearChanged(ChangeEventArgs e)

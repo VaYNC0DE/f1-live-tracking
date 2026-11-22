@@ -1,6 +1,7 @@
 @using F1LiveTracker.Models
 @using F1LiveTracker.Services
 @inject TimingTowerState State
+@implements IDisposable
 
 <div class="w-full bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm dark:shadow-2xl backdrop-blur-sm flex flex-col overflow-hidden transition-colors">
     <!-- Table Column Headers -->
@@ -40,6 +41,12 @@
                 <p class="text-sm text-slate-500 dark:text-zinc-400 max-w-md mx-auto mb-4">
                     @State.ErrorMessage
                 </p>
+            </div>
+        }
+        else if (State.Drivers.Count == 0)
+        {
+            <div class="p-12 text-center text-xs font-mono text-slate-400 dark:text-zinc-500">
+                No timing telemetry recorded for this session yet.
             </div>
         }
         else
@@ -149,3 +156,20 @@
         }
     </div>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += OnStateChanged;
+    }
+
+    private void OnStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChanged;
+    }
+}

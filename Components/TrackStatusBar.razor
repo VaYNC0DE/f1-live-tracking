@@ -1,5 +1,6 @@
 @using F1LiveTracker.Services
 @inject TimingTowerState State
+@implements IDisposable
 
 <div class="flex flex-col gap-2.5 w-full">
     <!-- Red Flag Active Banner -->
@@ -81,3 +82,20 @@
         </div>
     </div>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += OnStateChanged;
+    }
+
+    private void OnStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChanged;
+    }
+}

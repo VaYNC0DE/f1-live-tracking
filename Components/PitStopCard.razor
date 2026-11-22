@@ -1,5 +1,6 @@
 @using F1LiveTracker.Services
 @inject TimingTowerState State
+@implements IDisposable
 
 <div class="w-full bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm dark:shadow-xl backdrop-blur-sm flex flex-col overflow-hidden transition-colors">
     <!-- Card Header -->
@@ -145,3 +146,20 @@
         }
     </div>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += OnStateChanged;
+    }
+
+    private void OnStateChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChanged;
+    }
+}

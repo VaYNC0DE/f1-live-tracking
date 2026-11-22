@@ -39,6 +39,10 @@ public class TimingTowerState
     {
         SelectedYear = year;
         IsLoading = true;
+        Drivers = new();
+        CockpitTelemetry = null;
+        SessionFastestPitStop = null;
+        PitStops = new();
         NotifyStateChanged();
 
         AvailableSessions = await _client.GetSessionsByYearAsync(year);
@@ -60,14 +64,18 @@ public class TimingTowerState
     {
         SelectedSessionKey = sessionKey;
         CurrentSession = AvailableSessions.FirstOrDefault(s => s.SessionKey == sessionKey);
+        Drivers = new();
+        CockpitTelemetry = null;
+        SessionFastestPitStop = null;
+        PitStops = new();
         await RefreshTowerDataAsync(true);
     }
 
     public void SelectCockpitDriver(int driverNumber)
     {
         SelectedCockpitDriverNumber = driverNumber;
-        _ = FetchCockpitTelemetryAsync();
         NotifyStateChanged();
+        _ = FetchCockpitTelemetryAsync();
     }
 
     private void StartPollingLoop()
@@ -124,6 +132,11 @@ public class TimingTowerState
 
             // Build Timing Tower Rows
             Drivers = BuildTimingTowerRows(rawDrivers, rawIntervals, rawLaps, rawStints);
+
+            if (!SelectedCockpitDriverNumber.HasValue && Drivers.Count > 0)
+            {
+                SelectedCockpitDriverNumber = Drivers[0].DriverNumber;
+            }
 
             // Cockpit Telemetry
             await FetchCockpitTelemetryAsync();
@@ -189,6 +202,10 @@ public class TimingTowerState
         {
             // Fallback gracefully
         }
+        finally
+        {
+            NotifyStateChanged();
+        }
     }
 
     private List<DriverTimingRow> BuildTimingTowerRows(
@@ -224,15 +241,13 @@ public class TimingTowerState
             var lastCompletedLap = driverLaps?.Where(l => l.LapDuration.HasValue && l.LapDuration.Value > 0).LastOrDefault();
             var pb = driverLaps?.Where(l => l.LapDuration.HasValue && l.LapDuration.Value > 0).MinBy(l => l.LapDuration!.Value);
 
-            var gapStr = inter?.GapToLeader ?? "-";
-            var intervalStr = inter?.IntervalValue ?? "-";
+            var rawGap = inter?.GapToLeader;
+            var gapStr = string.IsNullOrWhiteSpace(rawGap) ? "-" : rawGap.Trim();
+            var rawInterval = inter?.IntervalValue;
+            var intervalStr = string.IsNullOrWhiteSpace(rawInterval) ? "-" : rawInterval.Trim();
 
             var isPb = lastCompletedLap != null && pb != null && Math.Abs(lastCompletedLap.LapDuration!.Value - pb.LapDuration!.Value) < 0.001;
             var isFl = fastestDriverNum.HasValue && driver.DriverNumber == fastestDriverNum.Value;
-
-            double parsedGap = 999999;
-            if (gapStr == "0" || gapStr == "LEADER" || gapStr == "0.0") parsedGap = 0;
-            else if (double.TryParse(gapStr.TrimStart('+'), out var gVal)) parsedGap = gVal;
 
             var compound = stint?.Compound?.ToUpperInvariant() ?? "UNKNOWN";
             var tyreAge = stint != null ? (driverLaps?.Count ?? 0) - stint.LapStart + stint.TyreAgeAtStart : 0;
@@ -273,10 +288,23 @@ public class TimingTowerState
             ));
         }
 
-        // Sort by position / gap
-        var sorted = list.OrderBy(d => d.GapToLeader == "LEADER" ? 0 : 1)
-                         .ThenBy(d => double.TryParse(d.GapToLeader.TrimStart('+'), out var g) ? g : 99999)
-                         .Select((d, idx) => d with { Position = idx + 1 })
+        // Sort by total completed laps descending (more laps = ahead), then by parsed gap to leader ascending
+        var sorted = list.OrderByDescending(d => lapsByDriver.TryGetValue(d.DriverNumber, out var dl) ? dl.Count(l => l.LapDuration.HasValue && l.LapDuration.Value > 0) : 0)
+                         .ThenBy(d => {
+                             if (d.GapToLeader == "0" || d.GapToLeader == "0.0" || d.GapToLeader == "0.000" || d.GapToLeader == "LEADER") return 0.0;
+                             if (double.TryParse(d.GapToLeader.TrimStart('+'), out var g)) return g;
+                             return 99999.0;
+                         })
+                         .Select((d, idx) => {
+                             var isLeader = idx == 0;
+                             var gapDisplay = isLeader ? "LEADER" : (double.TryParse(d.GapToLeader.TrimStart('+'), out var g) ? $"+{g:F3}" : d.GapToLeader);
+                             var intervalDisplay = isLeader ? "-" : (double.TryParse(d.IntervalToAhead.TrimStart('+'), out var iv) ? $"+{iv:F3}" : d.IntervalToAhead);
+                             return d with {
+                                 Position = idx + 1,
+                                 GapToLeader = gapDisplay,
+                                 IntervalToAhead = intervalDisplay
+                             };
+                         })
                          .ToList();
 
         return sorted;
